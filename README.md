@@ -1,9 +1,20 @@
 # dotfiles
 
-## Brew
+My first attempt at entering the magical world of automating my dotfiles. Starting small and will see how sophisticated things become.
 
-`brew bundle`
+## Getting started
 
+`git clone git@github.com:adambirse/dotfiles.git && cd dotfiles`
+
+
+
+## Usage
+
+run `./install.sh`to install everything
+
+or
+
+run `./install.sh brew` to run brew
 
 
 ## Reference material
