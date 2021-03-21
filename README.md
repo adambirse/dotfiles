@@ -4,9 +4,7 @@ My first attempt at entering the magical world of automating my dotfiles. Starti
 
 ## Getting started
 
-`git clone git@github.com:adambirse/dotfiles.git && cd dotfiles`
-
-
+- `git clone git@github.com:adambirse/dotfiles.git && cd dotfiles`
 
 ## Usage
 
@@ -16,6 +14,8 @@ or
 
 run `./install.sh brew` to run brew
 
+
+run `source ~/.zshrc`
 
 ## Reference material
 
