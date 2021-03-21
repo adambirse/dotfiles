@@ -17,6 +17,7 @@ ZSH_DISABLE_COMPFIX="true"
 #project specific config I don't want committed to source control.
 source ~/.zsh_project_config
 source ~/.aliases
+source ~/.functions
 
 #################################
 
