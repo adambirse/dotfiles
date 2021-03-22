@@ -6,6 +6,15 @@
 
 
 ZSH=~/.oh-my-zsh
+ZSH_CUSTOM=$ZSH/custom
+
+function install_plugin() {
+
+if [[ ! -d "${ZSH_CUSTOM}/plugins/$1" ]] ; then
+ echo "Installing plugin $1 from $2"
+ git clone "$2" "${ZSH_CUSTOM}/plugins/$1"
+fi    
+}
 
 if [[ ! -d ${ZSH} ]] ; then
 echo "installing oh my zsh"
@@ -22,3 +31,6 @@ echo "installing oh my zsh"
     --depth=1 --branch "master"                   \
     "https://github.com/ohmyzsh/ohmyzsh.git" "$ZSH"
 fi
+
+install_plugin "zsh-autosuggestions" "https://github.com/zsh-users/zsh-autosuggestions";
+install_plugin "zsh-better-npm-completion" "https://github.com/lukechilds/zsh-better-npm-completion"
