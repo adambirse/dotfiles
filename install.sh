@@ -4,8 +4,6 @@
 #--------------------------------------------------------------------------
 #
 
-source "zsh/install/install.sh"
-
 args=$1
 echo "Script called with \"${args}\""
 
@@ -22,12 +20,12 @@ brew)
 
 zsh )
     echo  "Running zsh"
-    zsh_install
+    stow zsh
     ;;
 
 *)
     echo "running full script"
     brew_install
-    zsh_install
+    stow zsh
     ;;
 esac
