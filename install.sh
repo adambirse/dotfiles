@@ -3,6 +3,7 @@
 # Install
 #--------------------------------------------------------------------------
 #
+source "setup/zsh.sh"
 
 args=$1
 echo "Script called with \"${args}\""
@@ -20,6 +21,7 @@ brew)
 
 zsh)
     echo "Running zsh"
+    install_zsh
     stow zsh
     ;;
 
@@ -31,6 +33,7 @@ git)
 *)
     echo "running full script"
     brew_install
+    install_zsh
     stow zsh
     stow git
     ;;
