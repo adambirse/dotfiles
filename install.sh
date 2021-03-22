@@ -18,14 +18,20 @@ brew)
     brew_install
     ;;
 
-zsh )
-    echo  "Running zsh"
+zsh)
+    echo "Running zsh"
     stow zsh
+    ;;
+
+git)
+    echo "Running git"
+    stow git
     ;;
 
 *)
     echo "running full script"
     brew_install
     stow zsh
+    stow git
     ;;
 esac
