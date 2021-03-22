@@ -3,7 +3,9 @@
 # Install
 #--------------------------------------------------------------------------
 #
-source "setup/zsh.sh"
+source "bin/zsh.sh"
+source "bin/install_dot_files.sh"
+
 
 args=$1
 echo "Script called with \"${args}\""
@@ -22,19 +24,18 @@ brew)
 zsh)
     echo "Running zsh"
     install_zsh
-    stow zsh
+    stow_package zsh
     ;;
 
 git)
     echo "Running git"
-    stow git
+    stow_package git
     ;;
 
 *)
     echo "running full script"
     brew_install
     install_zsh
-    stow zsh
-    stow git
+    stow_all
     ;;
 esac

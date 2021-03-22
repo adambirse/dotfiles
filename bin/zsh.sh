@@ -14,7 +14,6 @@ function install_plugin() {
     git clone "$2" "${ZSH_CUSTOM}/plugins/$1"
   fi
 }
-
 function install_zsh() {
 
   if [[ ! -d ${ZSH} ]]; then
