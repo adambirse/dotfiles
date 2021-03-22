@@ -10,8 +10,12 @@ function stow_package() {
 }
 
 function stow_all() {
-    #TODO loop through DOTFILES directory.
-    stow_package zsh
-    stow_package git
+    cd $DOTFILES
+    for DIR in $(ls -d */); do
+        # Remove last character (/)
+        package=$(echo "$DIR" | sed 's/.$//')
+        echo "Stowing ${package}"
+        stow -t $HOME $package
+    done
 
 }
