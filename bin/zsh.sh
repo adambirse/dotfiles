@@ -34,4 +34,7 @@ function install_zsh() {
 
   install_plugin "zsh-autosuggestions" "https://github.com/zsh-users/zsh-autosuggestions"
   install_plugin "zsh-better-npm-completion" "https://github.com/lukechilds/zsh-better-npm-completion"
+  install_plugin "zsh-nvm" "https://github.com/lukechilds/zsh-nvm"
+
+
 }
