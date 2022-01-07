@@ -1,6 +1,6 @@
 # dotfiles
 
-My first attempt at entering the magical world of automating my dotfiles. Starting small and will see how sophisticated things become.
+My first attempt at entering the magical world of automating my dotfiles. Starting small and will see how sophisticated things become
 
 ## Getting started
 
