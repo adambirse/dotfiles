@@ -109,3 +109,10 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 export PATH="/usr/local/opt/python@3.8/bin:$PATH"
+
+# tabtab source for serverless package
+# uninstall by removing these lines or running `tabtab uninstall serverless`
+[[ -f /Users/abirse/experiments/myServerlessApp/node_modules/tabtab/.completions/serverless.zsh ]] && . /Users/abirse/experiments/myServerlessApp/node_modules/tabtab/.completions/serverless.zsh
+# tabtab source for sls package
+# uninstall by removing these lines or running `tabtab uninstall sls`
+[[ -f /Users/abirse/experiments/myServerlessApp/node_modules/tabtab/.completions/sls.zsh ]] && . /Users/abirse/experiments/myServerlessApp/node_modules/tabtab/.completions/sls.zsh
