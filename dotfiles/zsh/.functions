@@ -2,3 +2,8 @@
 function mkd() {
     mkdir -p "$@" && cd "$@"
 }
+
+function jira_git() {
+    git log --pretty=format:"%an%x09%ad%x09%s" --grep="$@" > "$@.txt"
+    cat "$@.txt"
+}
