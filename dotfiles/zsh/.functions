@@ -3,6 +3,8 @@ function mkd() {
     mkdir -p "$@" && cd "$@"
 }
 
+#usage: jira_git TICKET_REF
+# obviously not just for use with jira but this was my use case
 function jira_git() {
     git log --pretty=format:"%an%x09%ad%x09%s" --grep="$@" > "$@.txt"
     cat "$@.txt"
