@@ -3,3 +3,5 @@
 	email = adambirse@gmail.com
 [init]
 	defaultBranch = main
+[diff]
+	colorMoved = zebra
