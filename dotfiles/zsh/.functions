@@ -14,4 +14,3 @@ function jira_git() {
 function gc_count() {
     git shortlog -sne | grep "$@"
 }
-git shortlog -sne | grep new
