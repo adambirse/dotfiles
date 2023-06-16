@@ -14,3 +14,22 @@ function jira_git() {
 function gc_count() {
     git shortlog -sne | grep "$@"
 }
+
+#usage: gac <commit_message>
+# short hand to  add and commit
+function gac() {
+    ga . 
+    gc -m "$@"
+}
+
+#!/bin/bash
+function measure() {
+    abc='npm run build'
+    echo 'before'
+    now=$(date +"%T")
+    echo "Current time : $now"
+    npm run build
+    now=$(date +"%T")
+    echo "Current time : $now"
+    echo 'after'
+}
