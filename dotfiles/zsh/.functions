@@ -16,10 +16,11 @@ function gc_count() {
 }
 
 #usage: gac <commit_message>
-# short hand to  add and commit
+# short hand to  add,commit and push
 function gac() {
-    ga . 
+    ga .
     gc -m "$@"
+    git push
 }
 
 #!/bin/bash
