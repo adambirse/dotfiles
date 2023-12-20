@@ -6,13 +6,12 @@
 source "bin/zsh.sh"
 source "bin/install_dot_files.sh"
 
-
 args=$1
 echo "Script called with \"${args}\""
 
 function brew_install() {
     echo "Running brew bundle"
-    brew bundle --file=brew/Brewfile
+    brew bundle --file=brew/Brewfile.min
     echo "Finished running brew"
 }
 
