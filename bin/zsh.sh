@@ -16,6 +16,9 @@ function install_plugin() {
 }
 function install_zsh() {
 
+  brew install stow
+  brew install zsh
+
   if [[ ! -d ${ZSH} ]]; then
     echo "installing oh my zsh"
     #
@@ -35,6 +38,5 @@ function install_zsh() {
   install_plugin "zsh-autosuggestions" "https://github.com/zsh-users/zsh-autosuggestions"
   install_plugin "zsh-better-npm-completion" "https://github.com/lukechilds/zsh-better-npm-completion"
   install_plugin "zsh-nvm" "https://github.com/lukechilds/zsh-nvm"
-
 
 }
