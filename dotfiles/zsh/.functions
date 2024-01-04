@@ -34,3 +34,37 @@ function measure() {
     echo "Current time : $now"
     echo 'after'
 }
+
+function docker_stop_all_containers() {
+    if [ "$(docker ps -q)" ]; then
+        echo "Stopping containers"
+        docker stop $(docker ps -q)
+    else
+        echo "No running containers to stop."
+    fi
+}
+
+function docker_remove_all_containers() {
+    if [ "$(docker ps -q)" ]; then
+        echo "Removing containers"
+        docker rm $(docker ps -aq)
+    else
+        echo "No containers to remove."
+    fi
+}
+
+function docker_remove_all_images() {
+    if [ "$(docker images -aq)" ]; then
+        echo "Removing images"
+        docker rmi -f $(docker images -aq)
+    else
+        echo "No images to remove."
+    fi
+}
+
+function docker_nuke() {
+    docker_stop_all_containers
+    docker_remove_all_containers
+    docker_remove_all_images
+}
+
