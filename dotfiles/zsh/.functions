@@ -45,7 +45,7 @@ function docker_stop_all_containers() {
 }
 
 function docker_remove_all_containers() {
-    if [ "$(docker ps -q)" ]; then
+    if [ "$(docker ps -qa)" ]; then
         echo "Removing containers"
         docker rm $(docker ps -aq)
     else
