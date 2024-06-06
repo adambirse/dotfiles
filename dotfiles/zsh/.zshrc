@@ -109,7 +109,10 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-export PATH="/usr/local/opt/python@3.8/bin:$PATH"
+export PATH="$HOME/.docker/bin:/usr/local/opt/python@3.8/bin:$PATH"
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/platform-tools
 
 # tabtab source for serverless package
 # uninstall by removing these lines or running `tabtab uninstall serverless`
