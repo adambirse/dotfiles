@@ -9,6 +9,11 @@ function jira_git() {
     git log --pretty=format:"%an%x09%ad%x09%s" --grep="$@" >"$@.txt"
     cat "$@.txt"
 }
+
+function git_commit_count() {
+    git rev-list --count --since="7 days ago" HEAD
+}
+
 #usage: gc_count <name>
 # list number of commits
 function gc_count() {
