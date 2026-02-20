@@ -20,7 +20,13 @@ Understand the task at hand. Use a combination of:
 - Reading the project CLAUDE.md for conventions and architecture guidance
 - Asking clarifying questions if the requirements are ambiguous
 
-## Step 2: Write the plan
+## Step 2: Define requirements
+
+Before writing the plan, delegate to the **requirements** agent to capture the requirements as BDD scenarios in Gherkin format. The requirements agent will work with you to produce `Given-When-Then` scenarios that define the expected behaviour.
+
+These scenarios will be included directly in the plan document (Step 3) and serve as the acceptance criteria for the implementation.
+
+## Step 3: Write the plan
 
 Extract the plan name (first word of `$ARGUMENTS`) and create a markdown file at `plans/<plan-name>.md` in the project root (create the `plans/` directory if it doesn't exist).
 
@@ -37,6 +43,29 @@ Brief description of the problem or feature and why it's needed.
 
 ## Non-goals
 - What is explicitly out of scope
+
+## Requirements
+
+BDD scenarios that define the expected behaviour of this feature. These serve as the acceptance criteria and will drive testing.
+
+### Feature: <feature name>
+
+\`\`\`gherkin
+Feature: <feature name>
+  <description>
+
+  Scenario: <happy path>
+    Given ...
+    When ...
+    Then ...
+
+  Scenario: <edge case or error>
+    Given ...
+    When ...
+    Then ...
+\`\`\`
+
+(Include all scenarios produced by the requirements agent)
 
 ## Approach
 Detailed description of the implementation approach. Include:
@@ -55,7 +84,10 @@ Detailed description of the implementation approach. Include:
 (Repeat for each file or component that will be touched)
 
 ## Testing Strategy
-How the changes will be verified — unit tests, integration tests, manual checks.
+How the changes will be verified. Tests should map directly to the BDD scenarios in the Requirements section above:
+- Which scenarios will be covered by unit tests
+- Which scenarios need integration tests
+- Any scenarios that require manual verification
 
 ## Risks and Open Questions
 - Any uncertainties, trade-offs, or decisions that need input
