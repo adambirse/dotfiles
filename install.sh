@@ -31,6 +31,11 @@ git)
     stow_package git
     ;;
 
+claude)
+    echo "Running claude"
+    stow_package claude
+    ;;
+
 *)
     echo "running full script"
     brew_install
