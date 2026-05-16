@@ -16,6 +16,7 @@ This is a macOS dotfiles repository that uses [GNU Stow](https://www.gnu.org/sof
 ./install.sh brew    # Run brew bundle with Brewfile.min
 ./install.sh zsh     # Install oh-my-zsh + plugins, stow zsh package
 ./install.sh git     # Stow git package only
+./install.sh claude  # Stow claude package only
 
 # After changes to zsh files
 source ~/.zshrc
@@ -35,6 +36,7 @@ The `dotfiles/` directory contains stow packages. Each subdirectory (e.g., `dotf
 - **`brew/`** — Homebrew bundle files: `Brewfile` (full) and `Brewfile.min` (minimal, used by default install)
 - **`dotfiles/zsh/`** — Zsh config: `.zshrc`, `.aliases`, `.functions`
 - **`dotfiles/git/`** — Git config: `.gitconfig`
+- **`dotfiles/claude/`** — Claude Code config under `.claude/`: `CLAUDE.md` (global user instructions), `agents/`, `commands/`
 - **`config/`** — Non-stowed config (VS Code profile)
 
 ### Zsh configuration
