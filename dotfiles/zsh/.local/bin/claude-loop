@@ -46,6 +46,27 @@ err() {
     exit 1
 }
 
+CURRENT_TASK_ID=""
+CURRENT_CLAUDE_PID=""
+
+on_interrupt() {
+    echo ""
+    log "Interrupted — stopping loop."
+    if [[ -n "$CURRENT_CLAUDE_PID" ]] && kill -0 "$CURRENT_CLAUDE_PID" 2>/dev/null; then
+        kill -TERM "$CURRENT_CLAUDE_PID" 2>/dev/null || true
+        # Give claude a moment to clean up, then force kill
+        sleep 1
+        kill -KILL "$CURRENT_CLAUDE_PID" 2>/dev/null || true
+    fi
+    if [[ -n "$CURRENT_TASK_ID" ]]; then
+        mark_task "$CURRENT_TASK_ID" "failed:interrupted"
+        log "Marked task as interrupted: $CURRENT_TASK_ID"
+    fi
+    exit 130
+}
+
+trap on_interrupt INT TERM
+
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -215,9 +236,10 @@ Do not move on to other tasks — focus only on the current one."
 
     log "Running task: $(basename "$task_file")"
     mark_task "$task_id" "running"
+    CURRENT_TASK_ID="$task_id"
 
     # Build claude args
-    local -a claude_args=(-p)
+    local -a claude_args=(-p --verbose)
 
     if [[ -n "$PERMISSION_MODE" ]]; then
         claude_args+=(--permission-mode "$PERMISSION_MODE")
@@ -233,8 +255,14 @@ Do not move on to other tasks — focus only on the current one."
         claude_args+=(--max-budget-usd "$MAX_BUDGET")
     fi
 
+    # Run claude in the background so the parent shell still receives SIGINT
+    # promptly (claude -p otherwise traps it and exits 0, masking interrupts).
     local exit_code=0
-    claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$log_file" || exit_code=${PIPESTATUS[0]}
+    claude "${claude_args[@]}" "$prompt" > >(tee "$log_file") 2>&1 &
+    CURRENT_CLAUDE_PID=$!
+    wait "$CURRENT_CLAUDE_PID" || exit_code=$?
+    CURRENT_CLAUDE_PID=""
+    CURRENT_TASK_ID=""
 
     if [[ $exit_code -eq 0 ]]; then
         mark_task "$task_id" "complete"
