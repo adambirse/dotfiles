@@ -1,0 +1,321 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# claude-loop: Run Claude Code headlessly against a plans directory.
+#
+# Usage: claude-loop <plans-dir> [options]
+#
+# Plans directory structure:
+#   plans/
+#     context.md        - Project context (always included)
+#     requirements.md   - Requirements/acceptance criteria (always included)
+#     plan-01-foo.md    - Task files, executed in sorted order
+#     plan-02-bar.md
+#     .status/          - Auto-created, tracks task completion and logs
+#
+# Options:
+#   --dry-run              Show what would be executed without running Claude
+#   --reset                Clear status for all tasks (re-run from scratch)
+#   --reset-task PATTERN   Clear status for a specific task (e.g. --reset-task 01)
+#   --status               Show current task statuses and exit
+#   --model MODEL          Override the Claude model
+#   --permission-mode MODE Override permission mode (default: dangerously-skip-permissions)
+#   --max-budget USD       Cap API spend per task in dollars
+#   --help                 Show this help message
+
+PLANS_DIR=""
+DRY_RUN=false
+RESET=false
+RESET_TASK=""
+STATUS_ONLY=false
+MODEL=""
+PERMISSION_MODE=""
+MAX_BUDGET=""
+
+usage() {
+    sed -n '/^# Usage:/,/^$/p' "$0" | sed 's/^# \{0,1\}//'
+    exit 0
+}
+
+log() {
+    echo "[claude-loop] $*"
+}
+
+err() {
+    echo "[claude-loop] ERROR: $*" >&2
+    exit 1
+}
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --dry-run)          DRY_RUN=true; shift ;;
+            --reset)            RESET=true; shift ;;
+            --reset-task)       RESET_TASK="$2"; shift 2 ;;
+            --status)           STATUS_ONLY=true; shift ;;
+            --model)            MODEL="$2"; shift 2 ;;
+            --permission-mode)  PERMISSION_MODE="$2"; shift 2 ;;
+            --max-budget)       MAX_BUDGET="$2"; shift 2 ;;
+            --help|-h)          usage ;;
+            -*)                 err "Unknown option: $1" ;;
+            *)
+                if [[ -z "$PLANS_DIR" ]]; then
+                    PLANS_DIR="$1"
+                else
+                    err "Unexpected argument: $1"
+                fi
+                shift
+                ;;
+        esac
+    done
+
+    if [[ -z "$PLANS_DIR" ]]; then
+        err "Plans directory is required. Usage: claude-loop <plans-dir>"
+    fi
+
+    # Resolve to absolute path
+    if [[ ! -d "$PLANS_DIR" ]]; then
+        err "Plans directory not found: $PLANS_DIR"
+    fi
+    PLANS_DIR="$(cd "$PLANS_DIR" && pwd)"
+}
+
+get_status_dir() {
+    echo "$PLANS_DIR/.status"
+}
+
+ensure_status_dir() {
+    mkdir -p "$(get_status_dir)"
+}
+
+get_task_files() {
+    local files
+    files=$(find "$PLANS_DIR" -maxdepth 1 -name 'plan-*.md' 2>/dev/null | sort)
+    echo "$files"
+}
+
+get_task_id() {
+    local file="$1"
+    basename "$file" | sed 's/^plan-//' | sed 's/\.md$//'
+}
+
+is_task_complete() {
+    local task_id="$1"
+    local status_file="$(get_status_dir)/$task_id.status"
+    [[ -f "$status_file" ]] && grep -q "^complete$" "$status_file"
+}
+
+mark_task() {
+    local task_id="$1"
+    local status="$2"
+    echo "$status" > "$(get_status_dir)/$task_id.status"
+}
+
+show_status() {
+    local task_files
+    task_files="$(get_task_files)"
+
+    if [[ -z "$task_files" ]]; then
+        log "No task files found in $PLANS_DIR"
+        return
+    fi
+
+    echo ""
+    echo "Task Status — $PLANS_DIR"
+    echo "-------------------------------------------"
+
+    while IFS= read -r file; do
+        [[ -z "$file" ]] && continue
+        local task_id
+        task_id="$(get_task_id "$file")"
+        local status_file="$(get_status_dir)/$task_id.status"
+        local status="pending"
+
+        if [[ -f "$status_file" ]]; then
+            status="$(cat "$status_file")"
+        fi
+
+        local icon
+        case "$status" in
+            complete)  icon="[done]" ;;
+            failed:*)  icon="[FAIL]" ;;
+            running)   icon="[ >> ]" ;;
+            *)         icon="[    ]" ;;
+        esac
+
+        printf "  %s  %s\n" "$icon" "$(basename "$file")"
+    done <<< "$task_files"
+
+    echo ""
+}
+
+reset_all() {
+    log "Resetting all task statuses"
+    rm -rf "$(get_status_dir)"
+    ensure_status_dir
+}
+
+reset_task() {
+    local pattern="$1"
+    local found=false
+    local task_files
+    task_files="$(get_task_files)"
+
+    while IFS= read -r file; do
+        [[ -z "$file" ]] && continue
+        local task_id
+        task_id="$(get_task_id "$file")"
+        if [[ "$task_id" == *"$pattern"* ]]; then
+            rm -f "$(get_status_dir)/$task_id.status"
+            rm -f "$(get_status_dir)/$task_id.log"
+            log "Reset task: $(basename "$file")"
+            found=true
+        fi
+    done <<< "$task_files"
+
+    if ! $found; then
+        err "No task matching '$pattern' found"
+    fi
+}
+
+build_context_prompt() {
+    local prompt=""
+
+    if [[ -f "$PLANS_DIR/context.md" ]]; then
+        prompt+="## Project Context"$'\n'
+        prompt+="$(cat "$PLANS_DIR/context.md")"$'\n\n'
+    fi
+
+    if [[ -f "$PLANS_DIR/requirements.md" ]]; then
+        prompt+="## Requirements"$'\n'
+        prompt+="$(cat "$PLANS_DIR/requirements.md")"$'\n\n'
+    fi
+
+    echo "$prompt"
+}
+
+run_task() {
+    local task_file="$1"
+    local task_id
+    task_id="$(get_task_id "$task_file")"
+    local task_content
+    task_content="$(cat "$task_file")"
+    local log_file="$(get_status_dir)/$task_id.log"
+
+    local context
+    context="$(build_context_prompt)"
+
+    local prompt="${context}## Current Task
+${task_content}
+
+## Instructions
+You are working through a plan. The task above is your current assignment.
+Complete this task fully. When finished, output a brief summary of what you did.
+Do not move on to other tasks — focus only on the current one."
+
+    log "Running task: $(basename "$task_file")"
+    mark_task "$task_id" "running"
+
+    # Build claude args
+    local -a claude_args=(-p)
+
+    if [[ -n "$PERMISSION_MODE" ]]; then
+        claude_args+=(--permission-mode "$PERMISSION_MODE")
+    else
+        claude_args+=(--dangerously-skip-permissions)
+    fi
+
+    if [[ -n "$MODEL" ]]; then
+        claude_args+=(--model "$MODEL")
+    fi
+
+    if [[ -n "$MAX_BUDGET" ]]; then
+        claude_args+=(--max-budget-usd "$MAX_BUDGET")
+    fi
+
+    local exit_code=0
+    claude "${claude_args[@]}" "$prompt" 2>&1 | tee "$log_file" || exit_code=${PIPESTATUS[0]}
+
+    if [[ $exit_code -eq 0 ]]; then
+        mark_task "$task_id" "complete"
+        log "Task complete: $(basename "$task_file")"
+    else
+        mark_task "$task_id" "failed:$exit_code"
+        log "Task failed (exit $exit_code): $(basename "$task_file")"
+        log "Log: $log_file"
+        return 1
+    fi
+}
+
+main() {
+    parse_args "$@"
+    ensure_status_dir
+
+    if $RESET; then
+        reset_all
+    fi
+
+    if [[ -n "$RESET_TASK" ]]; then
+        reset_task "$RESET_TASK"
+    fi
+
+    if $STATUS_ONLY || $RESET; then
+        show_status
+        return 0
+    fi
+
+    local task_files
+    task_files="$(get_task_files)"
+
+    if [[ -z "$task_files" ]]; then
+        err "No task files (plan-*.md) found in $PLANS_DIR"
+    fi
+
+    local total=0
+    local skipped=0
+    local completed=0
+    local failed=0
+
+    while IFS= read -r file; do
+        [[ -z "$file" ]] && continue
+        total=$((total + 1))
+    done <<< "$task_files"
+
+    log "Found $total task(s) in $PLANS_DIR"
+    echo ""
+
+    while IFS= read -r file; do
+        [[ -z "$file" ]] && continue
+        local task_id
+        task_id="$(get_task_id "$file")"
+
+        if is_task_complete "$task_id"; then
+            log "Skipping (already complete): $(basename "$file")"
+            skipped=$((skipped + 1))
+            continue
+        fi
+
+        if $DRY_RUN; then
+            log "[dry-run] Would run: $(basename "$file")"
+            continue
+        fi
+
+        if run_task "$file"; then
+            completed=$((completed + 1))
+        else
+            failed=$((failed + 1))
+            log "Stopping — task failed. Fix the issue and re-run to continue."
+            break
+        fi
+
+        echo ""
+        echo "-------------------------------------------"
+        echo ""
+    done <<< "$task_files"
+
+    echo ""
+    log "Summary: $completed completed, $skipped skipped, $failed failed (of $total total)"
+    show_status
+}
+
+main "$@"
