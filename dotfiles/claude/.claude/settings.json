@@ -27,7 +27,6 @@
       "Bash(git reset --hard:*)",
       "Bash(git clean -fd:*)",
       "Bash(git clean -fdx:*)",
-      "Bash(:(){ :|:& };:)",
       "Bash(dd if=:*)",
       "Bash(mkfs:*)",
       "Bash(chmod -R 777:*)",
