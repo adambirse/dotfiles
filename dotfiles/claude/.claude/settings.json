@@ -1,6 +1,11 @@
 {
   "alwaysThinkingEnabled": false,
   "theme": "light",
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
   "permissions": {
     "allow": [
       "Bash(dotnet:*)",
