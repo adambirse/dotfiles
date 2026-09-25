@@ -36,7 +36,7 @@ The `dotfiles/` directory contains stow packages. Each subdirectory (e.g., `dotf
 - **`brew/`** — Homebrew bundle files: `Brewfile` (full) and `Brewfile.min` (minimal, used by default install)
 - **`dotfiles/zsh/`** — Zsh config: `.zshrc`, `.aliases`, `.functions`
 - **`dotfiles/git/`** — Git config: `.gitconfig`
-- **`dotfiles/claude/`** — Claude Code config under `.claude/`: `CLAUDE.md` (global user instructions), `settings.json`, `skills/`
+- **`dotfiles/claude/`** — Claude Code config under `.claude/`: `CLAUDE.md` (global user instructions), `settings.json`, `skills/`, `agents/` (model-routed subagents)
 - **`config/`** — Non-stowed config (VS Code profile)
 
 ### Zsh configuration

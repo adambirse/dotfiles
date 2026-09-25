@@ -54,6 +54,22 @@ When working through a numbered plan directory (`plan-01-*.md`, `plan-02-*.md`, 
 - Complete plan N fully — including the gate above — before reading plan N+1.
 - If plan N's output is required by plan N+1 and is missing or broken, stop. Don't fabricate it.
 
+## Model routing
+
+The main session model does the reasoning. Hand cheap, well-bounded work down to the subagents in `~/.claude/agents/`:
+
+| Task | Route to |
+|---|---|
+| Research across several web pages, library docs, or long files | `doc-reader` (Haiku) |
+| Running tests, builds, type-checks, linters | `test-runner` (Haiku) |
+| Broad codebase searches where only locations are needed | `code-searcher` (Haiku) |
+| Design, deep research, debugging, writing code | Main session — don't delegate |
+
+- Delegating to `doc-reader`, `test-runner`, and `code-searcher` is pre-authorised; you don't need to ask first.
+- Do small work inline: a single file read, a single page fetch, one quick command. Delegation has a cold-start cost.
+- For the completion gate above, rely on the exit code and verbatim failure output `test-runner` returns. If it's missing or ambiguous, re-run the command yourself before marking anything complete.
+- When spawning any other subagent, pass `model: haiku` for pure retrieval and `model: sonnet` for mechanical edits.
+
 ## Skills
 
 Use the skills in `~/.claude/skills/` when the work matches their description:
