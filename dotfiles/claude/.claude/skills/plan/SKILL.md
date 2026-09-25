@@ -1,7 +1,9 @@
 ---
+name: plan
 description: Create an implementation plan in a markdown file and pause for review before executing
+argument-hint: <plan-name> <requirements, e.g. "refactor-db Move raw SQL queries into repository pattern">
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch
-user-input: plan name and requirements (e.g. "refactor-db Move raw SQL queries into repository pattern")
+disable-model-invocation: true
 ---
 
 You are creating an implementation plan. Follow these steps in order. **Do NOT write any production code until the user explicitly approves the plan.**
@@ -22,7 +24,7 @@ Understand the task at hand. Use a combination of:
 
 ## Step 2: Define requirements
 
-Before writing the plan, delegate to the **requirements** agent to capture the requirements as BDD scenarios in Gherkin format. The requirements agent will work with you to produce `Given-When-Then` scenarios that define the expected behaviour.
+Before writing the plan, use the **requirements** skill to capture the requirements as BDD scenarios in Gherkin format. Work through them with the user in this conversation to produce `Given-When-Then` scenarios that define the expected behaviour.
 
 These scenarios will be included directly in the plan document (Step 3) and serve as the acceptance criteria for the implementation.
 
@@ -65,7 +67,7 @@ Feature: <feature name>
     Then ...
 \`\`\`
 
-(Include all scenarios produced by the requirements agent)
+(Include all agreed scenarios)
 
 ## Approach
 Detailed description of the implementation approach. Include:
@@ -95,7 +97,7 @@ How the changes will be verified. Tests should map directly to the BDD scenarios
 
 Adapt the structure to the task — skip sections that aren't relevant, add sections if needed. The goal is clarity, not ceremony.
 
-## Step 3: Pause for review
+## Step 4: Pause for review
 
 After writing the plan file, tell the user:
 1. The path to the plan file
