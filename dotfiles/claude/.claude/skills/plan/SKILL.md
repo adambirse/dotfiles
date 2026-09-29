@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Create an implementation plan in a markdown file and pause for review before executing
+description: Create an implementation plan in plans/active/ and pause for review before executing
 argument-hint: <plan-name> <requirements, e.g. "refactor-db Move raw SQL queries into repository pattern">
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch
 disable-model-invocation: true
@@ -20,6 +20,7 @@ Understand the task at hand. Use a combination of:
 - Reading the user's requirements from their input (everything after the plan name in `$ARGUMENTS`)
 - Exploring the codebase (file structure, existing patterns, relevant code)
 - Reading the project CLAUDE.md for conventions and architecture guidance
+- Reading `plans/README.md` (if it exists) to see active and completed plans that may overlap
 - Asking clarifying questions if the requirements are ambiguous
 
 ## Step 2: Define requirements
@@ -30,7 +31,28 @@ These scenarios will be included directly in the plan document (Step 3) and serv
 
 ## Step 3: Write the plan
 
-Extract the plan name (first word of `$ARGUMENTS`) and create a markdown file at `plans/<plan-name>.md` in the project root (create the `plans/` directory if it doesn't exist).
+Extract the plan name (first word of `$ARGUMENTS`) and create a markdown file at `plans/active/<plan-name>.md` in the project root (create `plans/active/` and `plans/completed/` if they don't exist). If the scenarios are also written as a separate `.feature` file, save it next to the plan in `plans/active/`.
+
+If `plans/README.md` exists, add a row for the new plan to its **Active** table (plan link and a one-line summary). If it doesn't exist, create it with this skeleton:
+
+```markdown
+# Plans
+
+| Location | Contains |
+|---|---|
+| `active/` | Plans not yet started or in progress |
+| `completed/` | Plans whose work has shipped, kept for reference with their `.feature` files |
+
+## Active
+
+| Plan | Summary |
+|---|---|
+
+## Completed
+
+| Plan | Shipped in | Notes |
+|---|---|---|
+```
 
 The plan should follow this structure:
 
@@ -105,3 +127,12 @@ After writing the plan file, tell the user:
 3. Ask them to review the plan and confirm before you proceed with implementation
 
 **STOP HERE.** Do not write any code until the user gives explicit approval. If the user requests changes to the plan, update the plan file and pause again for review.
+
+## Step 5: When the plan is complete
+
+This happens later, once implementation is finished, not when the plan is written.
+
+When every item in the plan meets the completion gate in the global CLAUDE.md (scenarios verified, tests green, type-check and lint clean, no TODOs or placeholders):
+1. `git mv` the plan and its `.feature` files from `plans/active/` to `plans/completed/`.
+2. In `plans/README.md`, move its row from **Active** to **Completed**, recording the commit it shipped in and any follow-ups.
+3. Update any links to the plan's old path in other plans.
