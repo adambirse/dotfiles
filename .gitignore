@@ -1,1 +1,3 @@
 Brewfile.lock.json
+# Claude Code installer symlink; ~/.local/bin is stowed from here
+dotfiles/zsh/.local/bin/claude
