@@ -250,4 +250,4 @@ Feature: Retro
 |---|---|---|---|
 | 1.1 | done | 6e135e2 | |
 | 1.2 | done | (this commit) | test-runner removed instead of fixed: 3 attempts failed (it explored and chose its own commands, or refused real ones). You'll revisit it later. |
-| 1.3 | pending | | Edited out of order while 1.2 was being verified; committed separately |
+| 1.3 | done | (this commit) | Edited out of order while 1.2 was being verified. Checked headless: `git push --force --dry-run` stopped for approval; plain `git push --dry-run` allowed. Ceiling: rules match on the command prefix, so `git push origin main --force` (flag last) is not caught |
