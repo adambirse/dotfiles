@@ -62,6 +62,9 @@ The plan should follow this structure:
 ```markdown
 # Plan: <title>
 
+Approved: _(not yet)_
+Review mode: _(set by /deliver)_
+
 ## Context
 Brief description of the problem or feature and why it's needed.
 
@@ -135,20 +138,14 @@ Work hard to make slices thin. Each one delivers a small increment of value that
 - **Independently deployable.** Production keeps working after every slice. Use feature flags or dark launches only if the repo already uses them; otherwise ask.
 - **Ordered by value and risk.** Ship what delivers the most value, or removes the biggest unknown, first.
 
-## Step 4: Pause for review
+## Step 4: Review the slicing, then approve
 
-After writing the plan file, tell the user:
+After writing the plan file, show the user:
 1. The path to the plan file
 2. A brief summary of the approach (2-3 sentences)
-3. Ask them to review the plan and confirm before you proceed with implementation
+3. The features and slices as a short numbered list (slice number, what it delivers). Invite them to split, merge or reorder before approving.
+4. Any Delivery rows or open questions still waiting on them
 
-**STOP HERE.** Do not write any code until the user gives explicit approval. If the user requests changes to the plan, update the plan file and pause again for review.
+**STOP HERE.** Do not write any code. If the user asks for changes, update the plan file and pause again.
 
-## Step 5: When the plan is complete
-
-This happens later, once implementation is finished, not when the plan is written.
-
-When every item in the plan meets the completion gate in the global CLAUDE.md (scenarios verified, tests green, type-check and lint clean, no TODOs or placeholders):
-1. `git mv` the plan and its `.feature` files from `plans/active/` to `plans/completed/`.
-2. In `plans/README.md`, move its row from **Active** to **Completed**, recording the commit it shipped in and any follow-ups.
-3. Update any links to the plan's old path in other plans.
+When the user explicitly approves, set the plan's `Approved:` line to today's date. `/deliver` refuses any plan without it. Never set it yourself without that approval.

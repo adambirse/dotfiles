@@ -252,4 +252,10 @@ Feature: Retro
 | 1.2 | done | 30c234d | test-runner removed instead of fixed: 3 attempts failed (it explored and chose its own commands, or refused real ones). You'll revisit it later. |
 | 1.3 | done | 0d230a3 | Edited out of order while 1.2 was being verified. Checked headless: `git push --force --dry-run` stopped for approval; plain `git push --dry-run` allowed. Ceiling: rules match on the command prefix, so `git push origin main --force` (flag last) is not caught |
 | 2.1 | done | b287886 | Checked headless on a scratch repo with no CI: /plan asked about lint, build, branch flow, deploy, verify and rollback, then recorded every answer with its source |
-| 2.2 | done | (this commit) | Checked headless on a scratch todo CLI: 3 user-centric features in 7 slices, each starting with a walking skeleton, at most 3 scenarios per slice, each mapped to scenarios |
+| 2.2 | done | b78210e | Checked headless on a scratch todo CLI: 3 user-centric features in 7 slices, each starting with a walking skeleton, at most 3 scenarios per slice, each mapped to scenarios |
+| 2.3 | done | (this commit) | Checked headless: the slice list was shown with an invitation to split, merge or reorder; `Approved:` stayed unset until "approved", then got the date; no code was written |
+
+**Carried into 3.2.** These are the archive steps removed from `plan` Step 5. Run them once every slice is done:
+1. `git mv` the plan and its `.feature` files from `plans/active/` to `plans/completed/`.
+2. In `plans/README.md`, move its row from **Active** to **Completed**, recording the commit it shipped in and any follow-ups.
+3. Update any links to the plan's old path in other plans.
