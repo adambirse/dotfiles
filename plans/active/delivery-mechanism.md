@@ -33,7 +33,8 @@ Today the pieces don't fit together:
   - When it starts, it asks once whether to keep the pauses or run **fully autonomously** for this plan, and records the choice in the plan.
   - The danger guard (below) applies in both modes.
 - **Danger guard.** If a slice's diff or deploy is dangerous or suspicious, `deliver` stops and asks, even in autonomous mode. When in doubt, it asks.
-- **One-time approval.** Approving the plan is the only step that always waits for you. The feature pauses are the default, and you can turn them off.
+- **One-time approval.** Approving the plan is the only step that always waits for you. The feature pauses and push reviews are the default, and you can turn them off.
+- **Review before every commit** (added as feature 2.5). Once a slice passes its gates, you review its uncommitted diff. After you approve, it's committed and pushed. Fully autonomous mode skips that review. Separately, Claude Code asks before every `git push` in every session, whatever mode `deliver` is in.
 - **Repo practice** (test, lint, build, deploy, wait, verify, rollback, branch/PR flow) is discovered while planning, confirmed with you, and recorded in the plan's **Delivery** section. `deliver` uses only what's recorded there.
 - **On failure:** roll back, investigate, and try up to **2** fixes if the cause is clear and in scope. Otherwise ask.
 - **`ship-it`** stays for one-off commits, and `deliver` calls it. **`claude-loop`** is retired: its references are removed from CLAUDE.md and the script is left alone.
@@ -153,6 +154,33 @@ Feature: Planning
 | 2.2 | **Features and slices.** Replace "Changes" with Features → Slices in the template. Each slice has a status. Add the slicing guidance above. |
 | 2.3 | **Slicing review and approval.** Step 4 shows the slice list for review and records `Approved:`. Move Step 5 (archiving) out to `deliver`. |
 
+### Feature 2.5: I review every change before it's committed and pushed
+
+```gherkin
+Feature: Review before commit and push
+  Scenario: Changes are reviewed before they are committed
+    Given a slice has passed its gates
+    When it is ready to commit
+    Then I am shown the uncommitted diff
+    And nothing is committed until I approve
+
+  Scenario: Claude Code asks before any push
+    When Claude runs git push in any session
+    Then I am asked to approve it first
+
+  Scenario: Force pushes still ask
+    When Claude runs git push --force
+    Then I am asked to approve it first
+```
+
+| Slice | Change | Status |
+|---|---|---|
+| 2.5.1 | **`settings.json`:** add `Bash(git push:*)` to `ask`. Starting with this slice, delivery in this repo is: show you the uncommitted diff, and commit and push only once you approve. | done |
+
+The `deliver` side (pausing before each slice's commit unless autonomous) is part of slice 3.2.
+
+**Interaction to know about:** a settings `ask` rule can't be skipped by a skill. So even in `deliver`'s autonomous mode, Claude Code shows a permission prompt for each push, unless you approve pushes for the session from that prompt. That prompt is the only thing you have to do; there's no separate review pause.
+
 ### Feature 3: I can deliver an approved plan safely, slice by slice
 
 ```gherkin
@@ -173,6 +201,12 @@ Feature: Delivery
     When deliver runs it
     Then it is built test-first, passes the plan's gates, and is committed, deployed and verified with the plan's commands
     And the slice is marked done with its commit SHA
+
+  Scenario: Review before each commit
+    Given review mode is not autonomous
+    When a slice has passed its gates
+    Then deliver shows me the uncommitted diff and waits for my approval
+    And it commits and pushes only after I approve
 
   Scenario: Pause when a feature is complete
     Given review mode is "pause per feature"
@@ -199,7 +233,7 @@ Feature: Delivery
 | Slice | Change |
 |---|---|
 | 3.1 | **`ship-it`.** Remove `disable-model-invocation`. Gates come from the caller first, then CLAUDE.md, otherwise it asks. Push to the target and branch flow it's given. |
-| 3.2 | **`deliver` happy path.** Approval check → ask for the review mode → pick the next pending slice → TDD → gates run on the main model → `ship-it` → deploy → background wait → verify → update the plan (status, SHA, notes) → pause at the end of each feature (unless autonomous) → archive when all are done. |
+| 3.2 | **`deliver` happy path.** Approval check → ask for the review mode → pick the next pending slice → TDD → gates run on the main model → show the uncommitted diff and wait for approval (unless autonomous) → commit and push through `ship-it` → deploy → background wait → verify → update the plan (status, SHA, notes) → pause at the end of each feature (unless autonomous) → archive when all are done. |
 | 3.3 | **Danger guard.** Check the diff and planned commands before committing and before deploying. Ask on any trigger. |
 | 3.4 | **Failure path.** Before push: keep the working tree and make up to 2 fix attempts. After push: roll back with the recorded method, confirm, diagnose (logs filtered in the shell), make up to 2 fix attempts through the full pipeline, then ask. |
 
@@ -234,6 +268,7 @@ Feature: Retro
 | Gate | Command | Source |
 |---|---|---|
 | Test / lint / build | None exist; review the diff, and load the changed skill in a fresh session to confirm its frontmatter parses | Repo has no test tooling |
+| Branch / PR flow | Show the uncommitted diff for review; after approval, commit to main and push | Confirmed by user (feature 2.5) |
 | Deploy | `git push` (origin/main), then `./install.sh claude` to stow new skill dirs | `install.sh`, CLAUDE.md |
 | Verify | `ls -l ~/.claude/skills/<name>` resolves into dotfiles; the skill is listed in a fresh session | Stow layout |
 | Rollback | Not required | Confirmed by user |
@@ -253,7 +288,9 @@ Feature: Retro
 | 1.3 | done | 0d230a3 | Edited out of order while 1.2 was being verified. Checked headless: `git push --force --dry-run` stopped for approval; plain `git push --dry-run` allowed. Ceiling: rules match on the command prefix, so `git push origin main --force` (flag last) is not caught |
 | 2.1 | done | b287886 | Checked headless on a scratch repo with no CI: /plan asked about lint, build, branch flow, deploy, verify and rollback, then recorded every answer with its source |
 | 2.2 | done | b78210e | Checked headless on a scratch todo CLI: 3 user-centric features in 7 slices, each starting with a walking skeleton, at most 3 scenarios per slice, each mapped to scenarios |
-| 2.3 | done | (this commit) | Checked headless: the slice list was shown with an invitation to split, merge or reorder; `Approved:` stayed unset until "approved", then got the date; no code was written |
+| 2.3 | done | 8400d76 | Checked headless: the slice list was shown with an invitation to split, merge or reorder; `Approved:` stayed unset until "approved", then got the date; no code was written |
+
+| 2.5.1 | done | (this commit) | Checked headless: `git push --dry-run`, which ran without a prompt in the 1.3 check, is now stopped for approval, and so is `git push --force --dry-run`. From here on, changes in this repo are shown for review before they're committed. The first version committed before review; it was undone (not yet pushed) when you moved the review point to before the commit. |
 
 **Carried into 3.2.** These are the archive steps removed from `plan` Step 5. Run them once every slice is done:
 1. `git mv` the plan and its `.feature` files from `plans/active/` to `plans/completed/`.
