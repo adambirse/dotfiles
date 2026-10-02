@@ -54,13 +54,13 @@ The main session model does the reasoning. Hand cheap, well-bounded work down to
 | Task | Route to |
 |---|---|
 | Research across several web pages, library docs, or long files | `doc-reader` (Haiku) |
-| Running tests, builds, type-checks, linters | `test-runner` (Haiku) |
+| Waiting on CI, deploys, or PR checks | A blocking shell command run in the background (e.g. `gh run watch --exit-status`) — never poll with a model |
 | Broad codebase searches where only locations are needed | `code-searcher` (Haiku) |
-| Design, deep research, debugging, writing code | Main session — don't delegate |
+| Design, deep research, debugging, writing code, running tests and builds | Main session — don't delegate |
 
-- Delegating to `doc-reader`, `test-runner`, and `code-searcher` is pre-authorised; you don't need to ask first.
+- Delegating to `doc-reader` and `code-searcher` is pre-authorised; you don't need to ask first.
 - Do small work inline: a single file read, a single page fetch, one quick command. Delegation has a cold-start cost.
-- For the completion gate above, rely on the exit code and verbatim failure output `test-runner` returns. If it's missing or ambiguous, re-run the command yourself before marking anything complete.
+- When reading long logs (CI, deploy, test output), filter them in the shell (e.g. `tail`, `grep`, `gh run view --log-failed`) rather than reading them whole.
 - When spawning any other subagent, pass `model: haiku` for pure retrieval and `model: sonnet` for mechanical edits.
 
 ## Skills

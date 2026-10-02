@@ -22,7 +22,6 @@ Today the pieces don't fit together:
 | `claude-loop` defaults to `--dangerously-skip-permissions` | `claude-loop` | Your `deny` list is ignored when it runs |
 | `ship-it` skips QA gates when CLAUDE.md doesn't list them | `ship-it` Step 1 | Silently assumes "no gates" |
 | `ship-it` has `disable-model-invocation: true` | `ship-it` frontmatter | `deliver` can't call it |
-| `test-runner` guesses commands when none are given | `agents/test-runner.md` | Haiku makes an assumption about repo practice |
 | `plan` Step 5 (archiving a completed plan) runs during delivery | `plan` SKILL.md | It belongs in `deliver` |
 | `plan` splits work by file ("Changes"), not by user value | `plan` template | Gives nothing to slice, pause on, or review |
 | `Bash(git:*)` is allowed, and that includes `git push --force` | `settings.json` | A rollback could rewrite published history without asking |
@@ -82,15 +81,14 @@ Today the pieces don't fit together:
 | Work | Runs on | Why |
 |---|---|---|
 | Waiting for CI, deploys and PR checks | Blocking shell commands run in the background (`gh run watch --exit-status`, `gh pr checks --watch`, or the repo's own command) | No tokens while waiting; the session wakes once |
-| Running gates and reading large output (`gh run view --log-failed`, deploy logs) | `test-runner` (Haiku), given exact commands | Main model reads a short verbatim excerpt |
-| Short output (under ~100 lines) | Inline on the main model | Spawning a subagent costs more than reading the output |
+| Running gates and reading large output (`gh run view --log-failed`, deploy logs) | Main model, with output filtered in the shell (`tail`, `grep`, `--log-failed`) | The Haiku `test-runner` was removed in slice 1.2 because it wouldn't reliably avoid choosing its own commands; to be revisited later |
 | Diagnosis, rollback decisions, the danger guard, code, slicing | Main model | Quality-critical |
 | Retro capture | Inline final step, written from a fixed template | Main model already has the context |
 | Retro analysis | Main model, when you ask | Rare and worth the reasoning |
 
 **Rough cost per slice:**
 - **Waiting for CI:** polling with a model costs about 5–20k tokens per poll, while a background watch costs one wake-up of about 2–5k tokens.
-- **Reading a CI log:** the main model reading it all costs about 30–80k tokens. Going through `test-runner` costs about 10–20k Haiku tokens plus 1–3k main-model tokens.
+- **Reading a CI log:** the main model reading it all costs about 30–80k tokens. Filtering it first in the shell (`--log-failed`, `tail`, `grep`) brings that down to about 2–10k.
 
 There's no separate `ci-watcher` agent.
 
@@ -106,10 +104,11 @@ Feature: Consistent instructions
     Then it describes delivery through /deliver and plans/active/
     And it does not mention claude-loop or plan-NN files
 
-  Scenario: test-runner never guesses commands
-    Given test-runner is invoked without commands
-    When it runs
-    Then it reports that no commands were given and runs nothing
+  Scenario: No subagent chooses verification commands
+    Given the agents in ~/.claude/agents
+    When I list them
+    Then test-runner is not among them
+    And CLAUDE.md routes tests and builds to the main session
 
   Scenario: Force pushes need my approval
     When Claude runs git push --force
@@ -119,7 +118,7 @@ Feature: Consistent instructions
 | Slice | Change |
 |---|---|
 | 1.1 | **`CLAUDE.md`:** replace "Plan and loop completion gates" with a short delivery section (the completion gate, the hard stop, and "the Delivery section overrides guesses"). Remove the `claude-loop`, `plan-NN` and exit-code wording. |
-| 1.2 | **`agents/test-runner.md`:** remove the step where it finds commands itself, and broaden the description to cover CI and deploy logs. |
+| 1.2 | **Remove `agents/test-runner.md`.** Route tests, builds and log reading to the main session in CLAUDE.md, and add a rule to filter long logs in the shell. (Three attempts to stop Haiku choosing its own commands failed; you'll revisit this later.) |
 | 1.3 | **`settings.json`:** add `git push --force`, `-f` and `--force-with-lease` to `ask`. |
 
 ### Feature 2: I can plan work as user-centric features made of thin slices
@@ -200,9 +199,9 @@ Feature: Delivery
 | Slice | Change |
 |---|---|
 | 3.1 | **`ship-it`.** Remove `disable-model-invocation`. Gates come from the caller first, then CLAUDE.md, otherwise it asks. Push to the target and branch flow it's given. |
-| 3.2 | **`deliver` happy path.** Approval check → ask for the review mode → pick the next pending slice → TDD → gates through `test-runner` → `ship-it` → deploy → background wait → verify → update the plan (status, SHA, notes) → pause at the end of each feature (unless autonomous) → archive when all are done. |
+| 3.2 | **`deliver` happy path.** Approval check → ask for the review mode → pick the next pending slice → TDD → gates run on the main model → `ship-it` → deploy → background wait → verify → update the plan (status, SHA, notes) → pause at the end of each feature (unless autonomous) → archive when all are done. |
 | 3.3 | **Danger guard.** Check the diff and planned commands before committing and before deploying. Ask on any trigger. |
-| 3.4 | **Failure path.** Before push: keep the working tree and make up to 2 fix attempts. After push: roll back with the recorded method, confirm, diagnose (logs through `test-runner`), make up to 2 fix attempts through the full pipeline, then ask. |
+| 3.4 | **Failure path.** Before push: keep the working tree and make up to 2 fix attempts. After push: roll back with the recorded method, confirm, diagnose (logs filtered in the shell), make up to 2 fix attempts through the full pipeline, then ask. |
 
 `deliver` isn't safe to use against other repos until 3.3 and 3.4 have shipped. Feature 3's review pause covers that.
 
@@ -244,3 +243,11 @@ Feature: Retro
 - **Long plans fill the context window.** The plan file is the record of progress. `deliver` updates it as each slice finishes (status, SHA, notes, review mode, and any Delivery rows you confirmed mid-run), so a compacted or fresh session picks up from the plan alone. This rule goes into slice 3.2.
 - **The danger guard is the model's judgement**, backed by the explicit triggers above. It isn't a guarantee, so autonomous mode is best used on repos with a reliable rollback.
 - **When a repo needs no rollback** (like this one), the Delivery row says so explicitly. If verification fails, `deliver` skips the rollback step and goes straight to diagnosis and the fix attempts. A blank rollback row still stops it from starting.
+
+## Progress
+
+| Slice | Status | Commit | Notes |
+|---|---|---|---|
+| 1.1 | done | 6e135e2 | |
+| 1.2 | done | (this commit) | test-runner removed instead of fixed: 3 attempts failed (it explored and chose its own commands, or refused real ones). You'll revisit it later. |
+| 1.3 | pending | | Edited out of order while 1.2 was being verified; committed separately |
