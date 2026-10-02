@@ -31,17 +31,34 @@ Record their answer on the `Review mode:` line.
 Pick the first slice whose status isn't `done`. Then:
 
 1. **Implement** it test-first, following the TDD rules in the global CLAUDE.md, until the slice's scenarios pass. Change only what the slice describes.
-2. **Ship** it with the `ship-it` skill. Pass it:
+2. **Check** the full diff against the danger guard (below).
+3. **Ship** it with the `ship-it` skill. Pass it:
    - the gates from the Delivery table,
    - the branch/PR flow,
    - in **Review** mode: that the user must review the diff before committing,
    - in **Autonomous** mode: that the user has approved autonomous delivery, so no review is needed.
-3. **Deploy** with the recorded deploy command, unless deploy is "Not required".
-4. **Wait** with the recorded wait command, run as a blocking shell command in the background. Never poll with repeated model turns.
-5. **Verify in production** with the recorded verify method, and check the slice's scenarios hold there.
-6. **Update the plan:** set the slice's status to `done` with its commit SHA and any notes the next session needs. Leave this edit uncommitted; it ships with the next slice's commit, or with the final archive commit.
+4. **Deploy** with the recorded deploy command, unless deploy is "Not required". Check the command against the danger guard first.
+5. **Wait** with the recorded wait command, run as a blocking shell command in the background. Never poll with repeated model turns.
+6. **Verify in production** with the recorded verify method, and check the slice's scenarios hold there.
+7. **Update the plan:** set the slice's status to `done` with its commit SHA and any notes the next session needs. Leave this edit uncommitted; it ships with the next slice's commit, or with the final archive commit.
 
 If anything fails, stop and report what failed and what was tried. Don't move to the next slice.
+
+## Danger guard
+
+In **both** review modes, stop before committing or deploying and ask the user if a slice involves any of the following. Show them exactly what triggered the stop.
+
+- **Destructive data changes:** dropping or rewriting data, schema changes that can't be reversed, bulk deletes.
+- **Security-sensitive changes:** auth, permissions, IAM/RBAC, network rules, CORS, crypto.
+- **Secrets:** a secret or credential-looking string in the diff or in logs.
+- **Unplanned dependency changes:** dependencies added or upgraded beyond what the plan says.
+- **Weakened safety nets:** tests, lint rules, CI steps or hooks removed, skipped or loosened.
+- **Scope drift:** changes outside the files or areas the slice planned.
+- **Unfamiliar commands:** any command not in the Delivery table, or anything targeting `prod`/`production` beyond the recorded deploy.
+- **Risky rollbacks:** a rollback that can't be undone, or one that would rewrite history (force push).
+- **Anything else that looks off** about the diff, its behaviour, or a dependency. When in doubt, ask. Asking costs the user a moment, while a bad deploy costs far more.
+
+Record each stop and the user's decision in the slice's notes in the plan.
 
 ## Step 4: Feature boundary
 
