@@ -30,7 +30,7 @@ Never assume repo practice. Every delivery command you couldn't find in the repo
 
 Before writing the plan, use the **requirements** skill to capture the requirements as BDD scenarios in Gherkin format. Work through them with the user in this conversation to produce `Given-When-Then` scenarios that define the expected behaviour.
 
-These scenarios will be included directly in the plan document (Step 3) and serve as the acceptance criteria for the implementation.
+Group the scenarios into **features**, each a capability described from the user's point of view ("As a … I can …"). They go into the plan document (Step 3) as the acceptance criteria, and each slice names the scenarios it delivers.
 
 ## Step 3: Write the plan
 
@@ -71,11 +71,14 @@ Brief description of the problem or feature and why it's needed.
 ## Non-goals
 - What is explicitly out of scope
 
-## Requirements
+## Approach
+Key design decisions and their rationale, which patterns apply, and how this fits the existing codebase.
 
-BDD scenarios that define the expected behaviour of this feature. These serve as the acceptance criteria and will drive testing.
+## Features
 
-### Feature: <feature name>
+Each feature is a capability described from the user's point of view. Its scenarios are the acceptance criteria. Features are split into thin slices, delivered in order.
+
+### Feature 1: <As a … I can …>
 
 \`\`\`gherkin
 Feature: <feature name>
@@ -92,29 +95,12 @@ Feature: <feature name>
     Then ...
 \`\`\`
 
-(Include all agreed scenarios)
+| Slice | Delivers | Scenarios | Changes | Tests | Status |
+|---|---|---|---|---|---|
+| 1.1 | <the thinnest end-to-end path> | <scenario names> | <files or components> | unit / integration / manual | pending |
+| 1.2 | ... | ... | ... | ... | pending |
 
-## Approach
-Detailed description of the implementation approach. Include:
-- Key design decisions and their rationale
-- Which patterns or architectures apply
-- How this fits with the existing codebase
-
-## Changes
-
-### <file or component>
-- What changes and why
-
-### <file or component>
-- What changes and why
-
-(Repeat for each file or component that will be touched)
-
-## Testing Strategy
-How the changes will be verified. Tests should map directly to the BDD scenarios in the Requirements section above:
-- Which scenarios will be covered by unit tests
-- Which scenarios need integration tests
-- Any scenarios that require manual verification
+(Repeat for each feature, ordered by value and risk)
 
 ## Delivery
 
@@ -137,7 +123,17 @@ How this repo is tested, shipped and checked. `/deliver` uses only these command
 
 Every Delivery row needs a command or an explicit "Not required" with its source. Never leave a row blank or fill one in with a guess.
 
-Adapt the structure to the task — skip sections that aren't relevant, add sections if needed. The goal is clarity, not ceremony.
+Adapt the structure to the task. Skip sections that aren't relevant, or add ones that are, except Features and Delivery, which every plan needs. The goal is clarity, not ceremony.
+
+### Slicing
+
+Work hard to make slices thin. Each one delivers a small increment of value that can be deployed and reviewed on its own.
+
+- **Vertical, not horizontal.** A slice cuts through every layer it needs and produces something observable. "Add the DB table" alone is not a slice.
+- **Walking skeleton first.** A feature's first slice is the thinnest end-to-end path, even if it's hard-coded or only covers the happy path.
+- **Split until small (SPIDR).** Split by Spike, Paths (happy path first, then edge cases), Interfaces, Data (one data type first), or Rules (simplest rule first). Split again if a slice needs more than ~3 scenarios, touches several unrelated areas, or can't be reviewed in a few minutes.
+- **Independently deployable.** Production keeps working after every slice. Use feature flags or dark launches only if the repo already uses them; otherwise ask.
+- **Ordered by value and risk.** Ship what delivers the most value, or removes the biggest unknown, first.
 
 ## Step 4: Pause for review
 
