@@ -21,7 +21,10 @@ Understand the task at hand. Use a combination of:
 - Exploring the codebase (file structure, existing patterns, relevant code)
 - Reading the project CLAUDE.md for conventions and architecture guidance
 - Reading `plans/README.md` (if it exists) to see active and completed plans that may overlap
+- Discovering how the repo is delivered: CI config (e.g. `.github/workflows/`), build files (`Makefile`, `package.json` scripts, etc.), deploy docs and scripts, and the README. Find the commands for test, lint/type-check, build, deploy, waiting for deploy, verifying in production, and rollback, plus the branch/PR flow.
 - Asking clarifying questions if the requirements are ambiguous
+
+Never assume repo practice. Every delivery command you couldn't find in the repo is a question for the user, and the plan can't be approved while any are unanswered. If the user says a step doesn't apply (e.g. no rollback), record that explicitly.
 
 ## Step 2: Define requirements
 
@@ -113,9 +116,26 @@ How the changes will be verified. Tests should map directly to the BDD scenarios
 - Which scenarios need integration tests
 - Any scenarios that require manual verification
 
+## Delivery
+
+How this repo is tested, shipped and checked. `/deliver` uses only these commands.
+
+| Step | Command | Source |
+|---|---|---|
+| Test | ... | file:line, or "confirmed by user" |
+| Lint / type-check | ... | |
+| Build | ... | |
+| Branch / PR flow | ... | |
+| Deploy | ... | |
+| Wait for deploy | ... | |
+| Verify in production | ... | |
+| Rollback | ... or "Not required" | |
+
 ## Risks and Open Questions
 - Any uncertainties, trade-offs, or decisions that need input
 ```
+
+Every Delivery row needs a command or an explicit "Not required" with its source. Never leave a row blank or fill one in with a guess.
 
 Adapt the structure to the task — skip sections that aren't relevant, add sections if needed. The goal is clarity, not ceremony.
 
