@@ -9,7 +9,11 @@
       "Bash(dotnet:*)",
       "Bash(npm:*)",
       "Bash(git:*)",
-      "Bash(gh:*)"
+      "Bash(gh:*)",
+      "Read(~/.claude/skills/**)",
+      "Read(~/dotfiles/dotfiles/claude/.claude/skills/**)",
+      "Read(~/.local/share/skill-feedback/**)",
+      "Edit(~/.local/share/skill-feedback/**)"
     ],
     "deny": [
       "Bash(rm -rf:*)",

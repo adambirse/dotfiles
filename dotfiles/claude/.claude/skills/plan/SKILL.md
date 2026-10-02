@@ -149,3 +149,7 @@ After writing the plan file, show the user:
 **STOP HERE.** Do not write any code. If the user asks for changes, update the plan file and pause again.
 
 When the user explicitly approves, set the plan's `Approved:` line to today's date. `/deliver` refuses any plan without it. Never set it yourself without that approval.
+
+## Step 5: Record feedback
+
+Once the plan is approved, or the user abandons it, append a feedback entry for `plan` as described in `~/.claude/skills/retro/capture.md`.

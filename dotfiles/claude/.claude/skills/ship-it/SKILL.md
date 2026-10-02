@@ -46,3 +46,7 @@ Push to the branch and remote given by the caller (the plan's branch/PR flow). O
 ## Step 6: Confirm
 
 Tell the user (or the caller) what was pushed: the commit hash, message, and branch.
+
+## Step 7: Record feedback
+
+Unless you were called by `/deliver` (which records its own entry), append a feedback entry for `ship-it` as described in `~/.claude/skills/retro/capture.md`. Do this also when you stop early.

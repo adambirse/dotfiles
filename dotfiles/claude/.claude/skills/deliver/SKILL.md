@@ -41,6 +41,7 @@ Pick the first slice whose status isn't `done`. Then:
 5. **Wait** with the recorded wait command, run as a blocking shell command in the background. Never poll with repeated model turns.
 6. **Verify in production** with the recorded verify method, and check the slice's scenarios hold there.
 7. **Update the plan:** set the slice's status to `done` with its commit SHA and any notes the next session needs. Leave this edit uncommitted; it ships with the next slice's commit, or with the final archive commit.
+8. **Record feedback:** append a feedback entry for `deliver` as described in `~/.claude/skills/retro/capture.md`. Do this also when the slice stops on failure, a danger-guard stop or a question.
 
 If anything fails, follow **Failure handling** (below). Don't move to the next slice until this one is done.
 
@@ -83,6 +84,8 @@ When the slice you just finished was the last in its feature:
 
 - **Review** mode: summarise what the feature shipped (slices, commits, anything verified only manually) and wait for the user's go-ahead before starting the next feature.
 - **Autonomous** mode: give the same summary and carry on.
+
+If the user corrects anything at the feature review, add it to the feedback log as a `deliver` entry.
 
 Then go back to Step 3.
 
