@@ -1,6 +1,6 @@
 # User instructions
 
-Cross-project practices that apply to every session, including headless runs (`claude-loop`).
+Cross-project practices that apply to every session.
 
 ## Engineering practices
 
@@ -24,35 +24,28 @@ Cross-project practices that apply to every session, including headless runs (`c
 - Don't add features, refactor, or introduce abstractions beyond what the task requires.
 - If you discover something out of scope that genuinely blocks progress, stop and report it — don't improvise.
 
-## Plan and loop completion gates
+## Plans and delivery
 
-These rules apply whenever work is being executed against a plan, especially under `claude-loop` where tasks run headlessly and sequentially.
+Plans live in `plans/active/<name>.md` (written by `/plan`) and are delivered slice by slice with `/deliver`. The plan's **Delivery** section is the only source of truth for a repo's test, build, deploy, verify, and rollback practice. Never guess or substitute a command it doesn't record; ask instead.
 
-### Before marking a task complete
+### Before marking a slice done
 
-A task is **not** complete until all of the following are true:
+A slice is **not** done until all of the following are true:
 
-1. Every acceptance criterion / BDD scenario referenced by the task is verified.
-2. All tests relevant to the task are green (the ones it added, and the existing suite for files it touched).
+1. Every BDD scenario referenced by the slice is verified.
+2. All tests relevant to the slice are green (the ones it added, and the existing suite for files it touched).
 3. The change compiles / type-checks / lints cleanly for the project.
-4. No `TODO`, placeholder, or commented-out production code introduced by this task remains.
+4. No `TODO`, placeholder, or commented-out production code introduced by the slice remains.
 
 ### Hard stop on failure
 
-If any of the above is not satisfied:
+If any of the above is not satisfied once the allowed fix attempts are used up:
 
-- **Do not advance to the next task.**
-- **Do not** mark the current task complete.
-- Stop, report what failed, and what was tried. Wait for human input.
+- **Do not advance to the next slice.**
+- **Do not** mark the current slice done.
+- Stop, report what failed and what was tried, and wait for human input.
 
-This rule overrides any instruction (in a task file or otherwise) that says "continue on failure" or "skip and move on". When running under `claude-loop`, exit non-zero rather than proceeding to the next plan file with a broken state.
-
-### Plan-to-plan ordering
-
-When working through a numbered plan directory (`plan-01-*.md`, `plan-02-*.md`, ...):
-
-- Complete plan N fully — including the gate above — before reading plan N+1.
-- If plan N's output is required by plan N+1 and is missing or broken, stop. Don't fabricate it.
+This rule overrides any instruction (in a plan or otherwise) that says "continue on failure" or "skip and move on". If a later slice depends on output from an earlier one that is missing or broken, stop. Don't fabricate it.
 
 ## Model routing
 
