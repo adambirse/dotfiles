@@ -42,7 +42,24 @@ Pick the first slice whose status isn't `done`. Then:
 6. **Verify in production** with the recorded verify method, and check the slice's scenarios hold there.
 7. **Update the plan:** set the slice's status to `done` with its commit SHA and any notes the next session needs. Leave this edit uncommitted; it ships with the next slice's commit, or with the final archive commit.
 
-If anything fails, stop and report what failed and what was tried. Don't move to the next slice.
+If anything fails, follow **Failure handling** (below). Don't move to the next slice until this one is done.
+
+## Failure handling
+
+**Before the push** (implementation, gates, review or commit fails):
+
+1. Leave the working tree as it is. Don't discard anything.
+2. Investigate the root cause. Filter long output in the shell (`tail`, `grep`, `--log-failed`) rather than reading it whole.
+3. If the cause is clear and inside the slice's scope, fix it and ship again (gates, then review in Review mode). Make at most **2** fix attempts.
+
+**After the push** (deploy, wait or verify fails):
+
+1. **Roll back** with the recorded rollback method, after checking it against the danger guard. If rollback is "Not required", skip to step 3.
+2. **Confirm the rollback is live** with the recorded verify method. If it isn't, stop and ask the user immediately.
+3. **Investigate** the root cause from the deploy and verify output, filtered in the shell.
+4. If the cause is clear and inside the slice's scope, fix it as a new commit through the full pipeline (gates, review, push, deploy, verify). Make at most **2** fix attempts.
+
+**In both cases:** if the cause is unclear, outside the slice's scope, needs a command that isn't in the Delivery table, or the attempts are used up, stop and ask the user. Tell them what failed, the root cause as far as you know it, and what you tried. Record each failure, rollback and attempt in the slice's notes in the plan.
 
 ## Danger guard
 
