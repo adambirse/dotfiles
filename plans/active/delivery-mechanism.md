@@ -291,9 +291,5 @@ Feature: Retro
 | 2.3 | done | 8400d76 | Checked headless: the slice list was shown with an invitation to split, merge or reorder; `Approved:` stayed unset until "approved", then got the date; no code was written |
 
 | 2.5.1 | done | 872ad7f | Checked headless: `git push --dry-run`, which ran without a prompt in the 1.3 check, is now stopped for approval, and so is `git push --force --dry-run`. From here on, changes in this repo are shown for review before they're committed. The first version committed before review; it was undone (not yet pushed) when you moved the review point to before the commit. |
-| 3.1 | done | (this commit) | Checked headless on a scratch repo with no CLAUDE.md: the model invoked ship-it itself, asked which gates to run instead of skipping them, flagged that there was no remote, and committed nothing. ship-it also gained a review step (Step 3) so a direct /ship-it still shows the diff before committing. |
-
-**Carried into 3.2.** These are the archive steps removed from `plan` Step 5. Run them once every slice is done:
-1. `git mv` the plan and its `.feature` files from `plans/active/` to `plans/completed/`.
-2. In `plans/README.md`, move its row from **Active** to **Completed**, recording the commit it shipped in and any follow-ups.
-3. Update any links to the plan's old path in other plans.
+| 3.1 | done | 88a4a41 | Checked headless on a scratch repo with no CLAUDE.md: the model invoked ship-it itself, asked which gates to run instead of skipping them, flagged that there was no remote, and committed nothing. ship-it also gained a review step (Step 3) so a direct /ship-it still shows the diff before committing. |
+| 3.2 | done | (this commit) | Checked headless on scratch repos (local bare remote). Unapproved plan: refused, nothing changed. Review mode: asked before anything else (first version asked only after implementing; fixed) and recorded. Slice: test-first, diff shown, committed and pushed only after approval, marked done with its SHA. Feature summary shown, then paused. Archive: moved to `completed/` and the README updated, through review. Resume: a fresh session skipped the slice marked done, and also caught that its SHA and files were missing. Not exercised: deploy, wait and verify commands (all scratch plans say "Not required"). The archive steps from 2.3 are now in `deliver` Step 5. |
